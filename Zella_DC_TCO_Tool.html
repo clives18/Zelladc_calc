@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCO Comparison Tool — Zella DC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  /* ─── Design tokens ─── */
+  :root {
+    --navy:       rgb(3, 28, 65);
+    --navy-mid:   rgb(6, 42, 92);
+    --navy-light: rgb(12, 58, 120);
+    --cyan:       rgb(36, 171, 234);
+    --cyan-light: rgba(36, 171, 234, 0.12);
+    --cyan-glow:  rgba(36, 171, 234, 0.25);
+    --lilac:      rgb(162, 119, 248);
+    --lilac-light: rgba(162, 119, 248, 0.1);
+    --white:      #ffffff;
+    --off-white:  #f7f9fc;
+    --text-primary: #0d1f3c;
+    --text-secondary: #4a6080;
+    --text-muted:  #8399b0;
+    --border:     rgba(3, 28, 65, 0.08);
+    --border-mid: rgba(3, 28, 65, 0.14);
+    --shadow-sm:  0 1px 4px rgba(3,28,65,0.06), 0 2px 12px rgba(3,28,65,0.04);
+    --shadow-md:  0 4px 20px rgba(3,28,65,0.08), 0 1px 4px rgba(3,28,65,0.05);
+    --shadow-lg:  0 8px 40px rgba(3,28,65,0.12), 0 2px 8px rgba(3,28,65,0.06);
+    --radius-sm:  8px;
+    --radius-md:  14px;
+    --radius-lg:  20px;
+    --font-body:  'DM Sans', sans-serif;
+    --font-mono:  'DM Mono', monospace;
+  }
+
+  /* ─── Reset & base ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-body);
+    background: var(--off-white);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── Layout wrapper ─── */
+  .page { max-width: 1280px; margin: 0 auto; padding: 0 32px 80px; }
+
+  /* ─── Header ─── */
+  .header {
+    background: var(--navy);
+    margin-bottom: 0;
+    padding: 0 32px;
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-mark {
+    width: 40px; height: 40px;
+    background: var(--cyan);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-mark svg { display: block; }
+  .header-title h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: -0.02em;
+  }
+  .header-title p {
+    font-size: 0.78rem;
+    font-weight: 300;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.03em;
+    margin-top: 1px;
+  }
+  .header-meta {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.35);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    text-align: right;
+    line-height: 1.7;
+  }
+
+  /* ─── Main grid ─── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 28px;
+    padding-top: 28px;
+  }
+
+  /* ─── Cards ─── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 22px 26px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-header-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: var(--cyan-light);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-header h2 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+  }
+  .card-body { padding: 22px 26px; }
+
+  /* ─── Input panel ─── */
+  .input-panel { display: flex; flex-direction: column; gap: 0; }
+  .input-section {
+    padding: 20px 26px;
+    border-bottom: 1px solid var(--border);
+  }
+  .input-section:last-child { border-bottom: none; }
+  .input-section-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  /* ─── Slider control ─── */
+  .slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 0;
+  }
+  .slider-row { display: flex; flex-direction: column; gap: 6px; }
+  .slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .slider-label {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .slider-value {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--cyan);
+    background: var(--cyan-light);
+    padding: 1px 8px;
+    border-radius: 20px;
+    min-width: 52px;
+    text-align: center;
+  }
+  .slider-range {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    margin-top: 2px;
+  }
+
+  /* Custom range input */
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-mid);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--navy);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 2px var(--cyan), 0 2px 8px rgba(3,28,65,0.2);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px var(--cyan), 0 2px 12px rgba(3,28,65,0.25);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--navy);
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 2px var(--cyan);
+    cursor: pointer;
+  }
+
+  /* ─── Segmented selector ─── */
+  .segmented {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .seg-btn {
+    padding: 9px 4px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-mid);
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+  .seg-btn:hover:not(.active) {
+    border-color: var(--cyan);
+    color: var(--navy);
+    background: var(--cyan-light);
+  }
+  .seg-btn.active {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--white);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ─── Select dropdown ─── */
+  .select-wrapper { position: relative; }
+  .select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 12px; top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--text-muted);
+    pointer-events: none;
+  }
+  select {
+    width: 100%;
+    padding: 10px 32px 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-mid);
+    background: var(--white);
+    font-family: var(--font-body);
+    font-size: 0.84rem;
+    color: var(--text-primary);
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  select:focus { border-color: var(--cyan); }
+  .field-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .field-meta {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+  }
+  .field-note {
+    font-size: 0.72rem;
+    color: var(--cyan);
+    background: var(--cyan-light);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  /* ─── Right column ─── */
+  .right-col { display: flex; flex-direction: column; gap: 24px; }
+
+  /* ─── TCO scenario heading ─── */
+  .section-heading {
+    padding: 28px 0 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .section-heading h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+  .section-heading .term-badge {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: rgba(3,28,65,0.05);
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+
+  /* ─── Comparison cards grid ─── */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .option-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+  }
+  .option-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-mid);
+  }
+  .option-card.winner {
+    border-color: var(--cyan);
+    background: linear-gradient(160deg, rgba(36,171,234,0.03) 0%, var(--white) 100%);
+    box-shadow: 0 4px 24px rgba(36,171,234,0.12), var(--shadow-sm);
+  }
+  .option-card.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+  .winner-badge {
+    position: absolute;
+    top: -10px; right: 14px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--cyan);
+    color: var(--navy);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .option-type {
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .option-type.zella { color: var(--cyan); }
+  .option-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  .option-metrics { display: flex; flex-direction: column; gap: 8px; }
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--border);
+  }
+  .metric-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .metric-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .metric-value {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    font-weight: 400;
+  }
+  .metric-row.total .metric-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+  }
+  .metric-row.total .metric-value {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--navy);
+  }
+  .option-card.winner .metric-row.total .metric-value { color: var(--cyan); }
+  .unavailable-overlay {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 8px;
+  }
+
+  /* ─── Chart section ─── */
+  .chart-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 28px 32px 24px;
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .chart-title h2 {
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+  .chart-title p {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: flex-end;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .chart-area {
+    position: relative;
+    height: 320px;
+    width: 100%;
+  }
+  canvas#tcoChart { position: absolute; inset: 0; }
+
+  /* ─── Tooltip ─── */
+  #chartTooltip {
+    position: fixed;
+    background: var(--navy);
+    color: var(--white);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.76rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 1000;
+    min-width: 180px;
+    box-shadow: 0 8px 30px rgba(3,28,65,0.3);
+  }
+  #chartTooltip .tt-year {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  #chartTooltip .tt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 2px 0;
+  }
+  #chartTooltip .tt-label {
+    display: flex; align-items: center; gap: 6px;
+    color: rgba(255,255,255,0.8);
+  }
+  #chartTooltip .tt-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  #chartTooltip .tt-val {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--white);
+  }
+  #chartTooltip .tt-row.highlight .tt-val { color: var(--cyan); }
+
+  /* ─── Assumptions accordion ─── */
+  .accordion {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .accordion-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 26px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    text-align: left;
+    gap: 12px;
+  }
+  .accordion-trigger-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .accordion-trigger h3 {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-secondary);
+  }
+  .accordion-arrow {
+    color: var(--text-muted);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+  .accordion.open .accordion-arrow { transform: rotate(180deg); }
+  .accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0,0,0.2,1);
+  }
+  .accordion.open .accordion-body { max-height: 2000px; }
+  .accordion-inner { padding: 0 26px 24px; }
+  .assumptions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .assumption-block { }
+  .assumption-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .assumption-item {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    padding: 3px 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .assumption-item:last-child { border-bottom: none; }
+  .assumption-item .ai-val {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  /* ─── Disclaimer ─── */
+  .disclaimer {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-style: italic;
+  }
+  .disclaimer strong { font-style: normal; color: var(--text-secondary); font-weight: 600; }
+
+  /* ─── Bottom bar ─── */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+  .footer a { color: var(--cyan); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ─── Summary table (compact, below cards) ─── */
+  .summary-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--white);
+    box-shadow: var(--shadow-sm);
+  }
+  table.summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .summary-table th {
+    padding: 12px 16px;
+    text-align: right;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    background: rgba(3,28,65,0.02);
+    border-bottom: 1px solid var(--border-mid);
+    white-space: nowrap;
+  }
+  .summary-table th:first-child { text-align: left; }
+  .summary-table td {
+    padding: 11px 16px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .summary-table td:first-child {
+    text-align: left;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table td.best { color: var(--cyan); font-weight: 600; }
+  .summary-table td.na { color: var(--text-muted); font-style: italic; font-family: var(--font-body); font-size: 0.74rem; }
+  .summary-table .row-total td { background: rgba(3,28,65,0.02); }
+  .summary-table .row-total td:first-child { font-weight: 700; color: var(--text-primary); font-size: 0.82rem; }
+  .summary-table .row-total td { font-weight: 600; font-size: 0.82rem; }
+
+  /* Subtle track fill via JS-injected CSS variable */
+  input[type="range"] {
+    --pct: 50%;
+    background: linear-gradient(to right, var(--cyan) 0%, var(--cyan) var(--pct), var(--border-mid) var(--pct), var(--border-mid) 100%);
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 300px 1fr; }
+    .comparison-grid { grid-template-columns: repeat(2, 1fr); }
+    .assumptions-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 860px) {
+    .page { padding: 0 16px 60px; }
+    .header { padding: 0 16px; }
+    .main-grid { grid-template-columns: 1fr; }
+    .comparison-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 520px) {
+    .comparison-grid { grid-template-columns: 1fr; }
+    .chart-legend { display: none; }
+    .assumptions-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="logo-mark">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="2" y="2" width="7" height="7" rx="1.5" fill="rgb(3,28,65)"/>
+          <rect x="11" y="2" width="7" height="7" rx="1.5" fill="rgb(3,28,65)"/>
+          <rect x="2" y="11" width="7" height="7" rx="1.5" fill="rgb(3,28,65)"/>
+          <rect x="11" y="11" width="7" height="7" rx="1.5" fill="rgba(3,28,65,0.5)"/>
+        </svg>
+      </div>
+      <div class="header-title">
+        <h1>TCO Comparison Tool</h1>
+        <p>Total cost of ownership across deployment options — v1.5</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      ZELLA DC &nbsp;|&nbsp; zelladc.com<br>
+      Estimates only — not a quote or offer
+    </div>
+  </div>
+</header>
+
+<div class="page">
+<div class="main-grid">
+
+  <!-- ═══ LEFT: INPUT PANEL ═══ -->
+  <aside>
+    <div class="card input-panel">
+      <div class="card-header">
+        <div class="card-header-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="6" stroke="rgb(36,171,234)" stroke-width="1.5"/>
+            <path d="M4 7h6M7 4v6" stroke="rgb(36,171,234)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h2>Model Inputs</h2>
+      </div>
+
+      <!-- Term -->
+      <div class="input-section">
+        <div class="input-section-label">Term</div>
+        <div class="slider-row">
+          <div class="slider-label-row">
+            <span class="slider-label">Analysis term</span>
+            <span class="slider-value" id="val-term">5 yrs</span>
+          </div>
+          <input type="range" id="sl-term" min="3" max="10" value="5" step="1">
+          <div class="slider-range"><span>3 yrs</span><span>10 yrs</span></div>
+        </div>
+      </div>
+
+      <!-- Configuration -->
+      <div class="input-section">
+        <div class="input-section-label">Configuration</div>
+        <div class="slider-group">
+
+          <div class="slider-row">
+            <div class="slider-label-row">
+              <span class="slider-label">Rack size (RU)</span>
+            </div>
+            <div class="segmented" id="seg-ru">
+              <button class="seg-btn" data-val="12">12 RU</button>
+              <button class="seg-btn active" data-val="25">25 RU</button>
+              <button class="seg-btn" data-val="38">38 RU</button>
+            </div>
+            <div class="field-meta">Select standard rack unit size</div>
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-label-row">
+              <span class="slider-label">Number of racks</span>
+              <span class="slider-value" id="val-racks">1</span>
+            </div>
+            <input type="range" id="sl-racks" min="1" max="6" value="1" step="1">
+            <div class="slider-range"><span>1</span><span>6</span></div>
+          </div>
+          <div id="rack-note" class="field-note" style="display:none">
+            ⚠ On-Prem Data Centre requires 3+ racks. With fewer racks, that option is excluded.
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-label-row">
+              <span class="slider-label">Power per rack (kW)</span>
+              <span class="slider-value" id="val-power">4 kW</span>
+            </div>
+            <input type="range" id="sl-power" min="2" max="6" value="4" step="0.5">
+            <div class="slider-range"><span>2 kW</span><span>6 kW</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="input-section">
+        <div class="input-section-label">Location &amp; Currency</div>
+        <div class="slider-group">
+          <div>
+            <label class="field-label" for="sel-region">Region</label>
+            <div class="select-wrapper">
+              <select id="sel-region"></select>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="sel-currency">Currency</label>
+            <div class="select-wrapper">
+              <select id="sel-currency"></select>
+            </div>
+            <div class="field-meta">Auto-linked to region; override if needed</div>
+          </div>
+          <div>
+            <div class="slider-label-row" style="margin-bottom:4px">
+              <span class="slider-label">Power rate</span>
+              <span class="slider-value" id="val-powerrate">—</span>
+            </div>
+            <div class="field-meta">Local electricity rate (auto from region)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ RIGHT: RESULTS ═══ -->
+  <main class="right-col">
+
+    <!-- Heading -->
+    <div class="section-heading">
+      <h2>Deployment Options</h2>
+      <span class="term-badge" id="term-badge">5-year TCO</span>
+    </div>
+
+    <!-- 6 Option Cards -->
+    <div class="comparison-grid" id="cards-grid"></div>
+
+    <!-- Summary table -->
+    <div class="summary-table-wrap">
+      <table class="summary-table" id="summary-table"></table>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">
+          <h2>Cumulative TCO by Year</h2>
+          <p>Establishment cost + cumulative running costs over the term</p>
+        </div>
+        <div class="chart-legend" id="chart-legend"></div>
+      </div>
+      <div class="chart-area">
+        <canvas id="tcoChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Assumptions -->
+    <div class="accordion" id="assump-accord">
+      <button class="accordion-trigger" onclick="toggleAccordion('assump-accord')">
+        <div class="accordion-trigger-left">
+          <div class="card-header-icon" style="background:rgba(3,28,65,0.05)">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1v4M7 9v4M1 7h4M9 7h4" stroke="rgb(74,96,128)" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Modelling Assumptions &amp; Methodology</h3>
+        </div>
+        <svg class="accordion-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="accordion-body">
+        <div class="accordion-inner">
+          <div class="assumptions-grid">
+            <div class="assumption-block">
+              <div class="assumption-title">Power &amp; Efficiency</div>
+              <div class="assumption-item"><span>Server Room PUE</span><span class="ai-val">2.5</span></div>
+              <div class="assumption-item"><span>Office Space PUE</span><span class="ai-val">2.5</span></div>
+              <div class="assumption-item"><span>Colo PUE</span><span class="ai-val">1.55</span></div>
+              <div class="assumption-item"><span>Zella Max PUE</span><span class="ai-val">1.3</span></div>
+              <div class="assumption-item"><span>Zella Outback PUE</span><span class="ai-val">1.3</span></div>
+              <div class="assumption-item"><span>Zella Pro PUE</span><span class="ai-val">1.3</span></div>
+              <div class="assumption-item"><span>Hours/year</span><span class="ai-val">8,760</span></div>
+            </div>
+            <div class="assumption-block">
+              <div class="assumption-title">Establishment Costs</div>
+              <div class="assumption-item"><span>On-Prem DC (3 racks)</span><span class="ai-val">$440,029</span></div>
+              <div class="assumption-item"><span>Office Space build</span><span class="ai-val">~$20,000</span></div>
+              <div class="assumption-item"><span>Office extras (per rack)</span><span class="ai-val">$21,500</span></div>
+              <div class="assumption-item"><span>Colo setup/rack</span><span class="ai-val">$2,000</span></div>
+              <div class="assumption-item"><span>Zella Max install/rack</span><span class="ai-val">$8,500</span></div>
+              <div class="assumption-item"><span>Zella Outback install</span><span class="ai-val">$1,500</span></div>
+              <div class="assumption-item"><span>Zella Pro install</span><span class="ai-val">$1,500</span></div>
+            </div>
+            <div class="assumption-block">
+              <div class="assumption-title">Recurring Costs</div>
+              <div class="assumption-item"><span>Floor space (office)</span><span class="ai-val">$300/m²/yr</span></div>
+              <div class="assumption-item"><span>Floor space (Zella Pro)</span><span class="ai-val">$300/m²/yr</span></div>
+              <div class="assumption-item"><span>Rack maintenance</span><span class="ai-val">$100/rack/yr</span></div>
+              <div class="assumption-item"><span>Colo connectivity</span><span class="ai-val">$1,500/mth</span></div>
+              <div class="assumption-item"><span>Office space/rack</span><span class="ai-val">9 m²</span></div>
+              <div class="assumption-item"><span>Zella Pro space</span><span class="ai-val">4 m²/unit</span></div>
+              <div class="assumption-item"><span>Freight excluded</span><span class="ai-val">—</span></div>
+            </div>
+          </div>
+          <div class="disclaimer">
+            <strong>Disclaimer:</strong> Calculations are an estimate only and do not constitute a quote or offer. 
+            Zella DC recommends seeking independent legal, financial and technical advice. 
+            Zella DC makes no representations or warranties about accuracy and accepts no liability arising from use of this tool. 
+            Estimates may differ from actual future outcomes. Server room data sourced from the Uptime Institute; 
+            colocation pricing sourced from Australian market data (Jun 2023). Currency rates from xe.com (Feb 2024).
+            All amounts shown in selected currency (converted from AUD base at indicative rates).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span>© Zella DC &nbsp;·&nbsp; <a href="https://www.zelladc.com" target="_blank">zelladc.com</a> &nbsp;·&nbsp; <a href="mailto:info@zelladc.com">info@zelladc.com</a></span>
+      <span>TCO Comparison Tool v1.5 &nbsp;·&nbsp; All figures approximate</span>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- Tooltip -->
+<div id="chartTooltip"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA TABLES — sourced directly from workbook reference sheets
+// ═══════════════════════════════════════════════════════════════
+
+/* Power rates by region: { code, country, currency, usdPerKwh, audPerKwh, localPerKwh } */
+const POWER_DATA = [
+  { code:'AE', country:'United Arab Emirates', currency:'AED', usdRate:0.08,  audRate:0.123564,  localRate:0.29388 },
+  { code:'AU', country:'Australia',            currency:'AUD', usdRate:0.24,  audRate:0.370692,  localRate:0.370692 },
+  { code:'BE', country:'Belgium',              currency:'EUR', usdRate:0.42,  audRate:0.648711,  localRate:0.39210 },
+  { code:'BR', country:'Brazil',               currency:'BRL', usdRate:0.16,  audRate:0.247128,  localRate:0.79271 },
+  { code:'CN', country:'China',                currency:'CNY', usdRate:0.08,  audRate:0.123564,  localRate:0.57562 },
+  { code:'DE', country:'Germany',              currency:'EUR', usdRate:0.40,  audRate:0.617820,  localRate:0.37343 },
+  { code:'DK', country:'Denmark',              currency:'DKK', usdRate:0.24,  audRate:0.370692,  localRate:1.67182 },
+  { code:'ES', country:'Spain',                currency:'EUR', usdRate:0.23,  audRate:0.355247,  localRate:0.21472 },
+  { code:'FR', country:'France',               currency:'EUR', usdRate:0.26,  audRate:0.401583,  localRate:0.24273 },
+  { code:'IE', country:'Ireland',              currency:'EUR', usdRate:0.52,  audRate:0.803166,  localRate:0.48546 },
+  { code:'IN', country:'India',                currency:'INR', usdRate:0.08,  audRate:0.123564,  localRate:6.64769 },
+  { code:'IT', country:'Italy',                currency:'EUR', usdRate:0.43,  audRate:0.664157,  localRate:0.40143 },
+  { code:'JP', country:'Japan',                currency:'JPY', usdRate:0.23,  audRate:0.355247,  localRate:34.5924 },
+  { code:'MX', country:'Mexico',               currency:'MXN', usdRate:0.11,  audRate:0.169901,  localRate:1.88999 },
+  { code:'NG', country:'Nigeria',              currency:'NGN', usdRate:0.05,  audRate:0.077228,  localRate:75.7980 },
+  { code:'NL', country:'Netherlands',          currency:'EUR', usdRate:0.34,  audRate:0.525147,  localRate:0.31741 },
+  { code:'NZ', country:'New Zealand',          currency:'NZD', usdRate:0.1358,audRate:0.209750,  localRate:0.22516 },
+  { code:'PE', country:'Peru',                 currency:'PEN', usdRate:0.19,  audRate:0.293465,  localRate:0.73648 },
+  { code:'QA', country:'Qatar',                currency:'QAR', usdRate:0.03,  audRate:0.046337,  localRate:0.10922 },
+  { code:'RU', country:'Russia',               currency:'RUB', usdRate:0.07,  audRate:0.108119,  localRate:6.39157 },
+  { code:'RW', country:'Rwanda',               currency:'RWF', usdRate:0.23,  audRate:0.355247,  localRate:295.153 },
+  { code:'SA', country:'Saudi Arabia',         currency:'SAR', usdRate:0.05,  audRate:0.077228,  localRate:0.18754 },
+  { code:'TR', country:'Turkey',               currency:'TRY', usdRate:0.08,  audRate:0.123564,  localRate:2.46010 },
+  { code:'UK', country:'United Kingdom',       currency:'GBP', usdRate:0.44,  audRate:0.679602,  localRate:0.35039 },
+  { code:'US', country:'United States',        currency:'USD', usdRate:0.17,  audRate:0.262574,  localRate:0.17000 },
+  { code:'VE', country:'Venezuela',            currency:'VED', usdRate:0.09,  audRate:0.139010,  localRate:9.27113 },
+  { code:'ZA', country:'South Africa',         currency:'ZAR', usdRate:0.18,  audRate:0.278019,  localRate:3.44461 },
+];
+
+/* Currency conversion rates (to AUD — i.e. 1 unit of currency = X AUD) */
+const CURRENCY_TO_AUD = {
+  AED:0.420459, AUD:1.0, BRL:0.311751, CNY:0.214661, DKK:0.22173,
+  EUR:1.65446,  GBP:1.93957, INR:0.0185875, JPY:0.0102695, MXN:0.0898948,
+  NGN:0.00101886, NZD:0.931541, PEN:0.398471, QAR:0.424232, RUB:0.0169158,
+  RWF:0.0012036, SAR:0.411788, TRY:0.0502273, USD:1.54455, VED:0.0149938, ZAR:0.0807112,
+};
+
+/* Server Room construction: { racks, construct, maintain } (AUD) */
+const SERVER_ROOM_COSTS = [
+  { racks:3, construct:440029, maintain:16000 },
+  { racks:4, construct:586704, maintain:16200 },
+  { racks:5, construct:733380, maintain:16400 },
+  { racks:6, construct:880056, maintain:16600 },
+];
+
+/* Zella Max pricing by rack count: { maxRacks, product, productPrice, installPerRack } */
+const ZELLA_MAX_PRICING = [
+  { maxRacks:2, product:'Max 10', productPrice:99000,  installPerRack:8500 },
+  { maxRacks:6, product:'Max 20', productPrice:159000, installPerRack:8500 },
+];
+
+/* Zella Pro pricing: { model, ruSize, maxKw, rrpAUD } */
+const ZELLA_PRO_PRICING = [
+  { model:'Zella Pro 12', ruSize:12, maxKw:2.5, rrp:33000 },
+  { model:'Zella Pro 12', ruSize:12, maxKw:3.5, rrp:33460 },
+  { model:'Zella Pro 25', ruSize:25, maxKw:5,   rrp:47000 },
+  { model:'Zella Pro 25', ruSize:25, maxKw:7,   rrp:47690 },
+  { model:'Zella Pro 38', ruSize:38, maxKw:5,   rrp:59000 },
+  { model:'Zella Pro 38', ruSize:38, maxKw:7,   rrp:59690 },
+];
+
+/* Zella Outback pricing */
+const ZELLA_OUTBACK_PRICING = [
+  { model:'Zella Outback 12', ruSize:12, maxKw:2.5, rrp:46000 },
+  { model:'Zella Outback 12', ruSize:12, maxKw:3.5, rrp:46500 },
+  { model:'Zella Outback 25', ruSize:25, maxKw:5,   rrp:61000 },
+  { model:'Zella Outback 25', ruSize:25, maxKw:7,   rrp:61700 },
+  { model:'Zella Outback 38', ruSize:38, maxKw:5,   rrp:80000 },
+  { model:'Zella Outback 38', ruSize:38, maxKw:7,   rrp:80700 },
+];
+
+/* Colocation monthly pricing by power bracket (AUD/mth, includes power) */
+const COLO_MONTHLY = [
+  { maxKw:3, monthly:1820 },
+  { maxKw:4, monthly:2190 },
+  { maxKw:5, monthly:2500 },
+  { maxKw:6, monthly:3100 },
+];
+
+/* PUE constants */
+const PUE = { serverRoom:2.5, officeSpace:2.5, colo:1.55, zellaMax:1.3, zellaOutback:1.3, zellaPro:1.3 };
+
+/* Misc */
+const HOURS_PER_YEAR = 8760;
+const OFFICE_SPACE_PER_RACK_M2 = 9;          // m²/rack
+const OFFICE_SPACE_COST_PER_M2_YR = 300;     // AUD/m²/yr
+const ZELLA_PRO_SPACE_M2 = 4;                // m²/unit
+const COLO_CONNECTIVITY_PER_MTH = 1500;      // AUD/mth
+const RACK_MAINTENANCE_PER_YR = 100;         // AUD/rack/yr
+
+
+// ═══════════════════════════════════════════════════════════════
+// LOOKUP HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+function getZellaUnitPrice(pricingTable, ruSize, powerKw) {
+  // Find matching ruSize, then closest maxKw >= powerKw
+  const candidates = pricingTable.filter(r => r.ruSize === ruSize && r.maxKw >= powerKw);
+  if (candidates.length === 0) {
+    // Fallback: largest size
+    const fallback = pricingTable.filter(r => r.ruSize === ruSize);
+    return fallback[fallback.length - 1];
+  }
+  return candidates.reduce((a, b) => a.maxKw <= b.maxKw ? a : b);
+}
+
+function getColoMonthly(powerKwPerRack) {
+  const match = COLO_MONTHLY.find(r => r.maxKw >= powerKwPerRack);
+  return match ? match.monthly : COLO_MONTHLY[COLO_MONTHLY.length - 1].monthly;
+}
+
+function getServerRoomCosts(racks) {
+  const exact = SERVER_ROOM_COSTS.find(r => r.racks === racks);
+  if (exact) return exact;
+  // Interpolate for edge cases
+  const lower = [...SERVER_ROOM_COSTS].reverse().find(r => r.racks <= racks);
+  const upper = SERVER_ROOM_COSTS.find(r => r.racks >= racks);
+  if (!lower) return upper;
+  if (!upper) return lower;
+  const ratio = (racks - lower.racks) / (upper.racks - lower.racks);
+  return {
+    racks,
+    construct: lower.construct + ratio * (upper.construct - lower.construct),
+    maintain:  lower.maintain  + ratio * (upper.maintain  - lower.maintain),
+  };
+}
+
+function getZellaMaxPrice(numRacks) {
+  const tier = ZELLA_MAX_PRICING.find(r => numRacks <= r.maxRacks);
+  const t = tier || ZELLA_MAX_PRICING[ZELLA_MAX_PRICING.length - 1];
+  return { productPrice: t.productPrice, totalInstall: t.installPerRack * numRacks };
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// CORE CALCULATION ENGINE
+// All costs computed in AUD, then converted to selected currency
+// ═══════════════════════════════════════════════════════════════
+
+function calcAnnualPowerCost(itKwTotal, pue, audPerKwh) {
+  return itKwTotal * pue * HOURS_PER_YEAR * audPerKwh;
+}
+
+function calculate(inputs) {
+  const { term, ruSize, numRacks, powerPerRack, regionCode, audPerKwh } = inputs;
+  const itKwTotal = numRacks * powerPerRack;
+
+  const results = {};
+
+  /* ── On-Prem Server Room ── */
+  if (numRacks >= 3) {
+    const src = getServerRoomCosts(numRacks);
+    const establish = src.construct;
+    const annualPower = calcAnnualPowerCost(itKwTotal, PUE.serverRoom, audPerKwh);
+    const annualRecurring = annualPower + src.maintain + (numRacks * RACK_MAINTENANCE_PER_YR);
+    results.serverRoom = {
+      name: 'On-Prem Data Centre',
+      type: 'On-Premise',
+      typeClass: '',
+      available: true,
+      establishment: establish,
+      annualRecurring: annualRecurring,
+      runningOverTerm: annualRecurring * term,
+      tco: establish + annualRecurring * term,
+      yearly: buildYearly(establish, annualRecurring, term),
+    };
+  } else {
+    results.serverRoom = {
+      name: 'On-Prem Data Centre',
+      type: 'On-Premise',
+      typeClass: '',
+      available: false,
+      note: 'Requires 3+ racks',
+      establishment: null, annualRecurring: null, runningOverTerm: null, tco: null, yearly: [],
+    };
+  }
+
+  /* ── On-Prem Office Space ── */
+  {
+    const constructionBase = 20000; // ~$20k for partitioning (from workbook)
+    const fireAcUps = 5000 + 5000 + 5000; // fire, cooling, UPS
+    const rackCost = 5000 * numRacks;
+    const installCost = 1500 * numRacks;
+    const establish = constructionBase + fireAcUps + rackCost + installCost;
+    const floorM2 = OFFICE_SPACE_PER_RACK_M2 * numRacks;
+    const annualFloor = floorM2 * OFFICE_SPACE_COST_PER_M2_YR;
+    const annualPower = calcAnnualPowerCost(itKwTotal, PUE.officeSpace, audPerKwh);
+    const annualRecurring = annualFloor + annualPower + (numRacks * RACK_MAINTENANCE_PER_YR);
+    results.officeSpace = {
+      name: 'On-Prem Server Room',
+      type: 'On-Premise',
+      typeClass: '',
+      available: true,
+      establishment: establish,
+      annualRecurring: annualRecurring,
+      runningOverTerm: annualRecurring * term,
+      tco: establish + annualRecurring * term,
+      yearly: buildYearly(establish, annualRecurring, term),
+    };
+  }
+
+  /* ── Colo / Traditional Data Centre ── */
+  {
+    const coloMonthly = getColoMonthly(powerPerRack) * numRacks;
+    const establish = 2000 * numRacks; // setup per rack
+    const annualColo = coloMonthly * 12;
+    const annualConnectivity = COLO_CONNECTIVITY_PER_MTH * 12;
+    // Power is included in colo monthly rate — no separate power calc
+    const annualRecurring = annualColo + annualConnectivity;
+    results.colo = {
+      name: 'Colo / Traditional DC',
+      type: 'Co-location',
+      typeClass: '',
+      available: true,
+      establishment: establish,
+      annualRecurring: annualRecurring,
+      runningOverTerm: annualRecurring * term,
+      tco: establish + annualRecurring * term,
+      yearly: buildYearly(establish, annualRecurring, term),
+    };
+  }
+
+  /* ── Zella Max ── */
+  {
+    const { productPrice, totalInstall } = getZellaMaxPrice(numRacks);
+    const establish = productPrice + totalInstall;
+    const annualPower = calcAnnualPowerCost(itKwTotal, PUE.zellaMax, audPerKwh);
+    const annualRecurring = annualPower + (numRacks * RACK_MAINTENANCE_PER_YR) + 100; // building maint
+    results.zellaMax = {
+      name: 'Zella Max',
+      type: 'Zella DC',
+      typeClass: 'zella',
+      available: true,
+      establishment: establish,
+      annualRecurring: annualRecurring,
+      runningOverTerm: annualRecurring * term,
+      tco: establish + annualRecurring * term,
+      yearly: buildYearly(establish, annualRecurring, term),
+    };
+  }
+
+  /* ── Zella Outback ── */
+  {
+    const unitData = getZellaUnitPrice(ZELLA_OUTBACK_PRICING, ruSize, powerPerRack);
+    const unitPrice = unitData ? unitData.rrp : 61000;
+    const establish = (unitPrice + 1500) * numRacks; // unit + installation per rack
+    const annualPower = calcAnnualPowerCost(itKwTotal, PUE.zellaOutback, audPerKwh);
+    const annualRecurring = annualPower + (numRacks * RACK_MAINTENANCE_PER_YR);
+    results.zellaOutback = {
+      name: 'Zella Outback',
+      type: 'Zella DC',
+      typeClass: 'zella',
+      available: true,
+      establishment: establish,
+      annualRecurring: annualRecurring,
+      runningOverTerm: annualRecurring * term,
+      tco: establish + annualRecurring * term,
+      yearly: buildYearly(establish, annualRecurring, term),
+    };
+  }
+
+  /* ── Zella Pro ── */
+  {
+    const unitData = getZellaUnitPrice(ZELLA_PRO_PRICING, ruSize, powerPerRack);
+    const unitPrice = unitData ? unitData.rrp : 47000;
+    const establish = (unitPrice + 1500) * numRacks;
+    const floorM2 = ZELLA_PRO_SPACE_M2 * numRacks;
+    const annualFloor = floorM2 * OFFICE_SPACE_COST_PER_M2_YR;
+    const annualPower = calcAnnualPowerCost(itKwTotal, PUE.zellaPro, audPerKwh);
+    const annualRecurring = annualPower + annualFloor + (numRacks * RACK_MAINTENANCE_PER_YR);
+    results.zellaPro = {
+      name: 'Zella Pro',
+      type: 'Zella DC',
+      typeClass: 'zella',
+      available: true,
+      establishment: establish,
+      annualRecurring: annualRecurring,
+      runningOverTerm: annualRecurring * term,
+      tco: establish + annualRecurring * term,
+      yearly: buildYearly(establish, annualRecurring, term),
+    };
+  }
+
+  return results;
+}
+
+function buildYearly(establish, annualRecurring, term) {
+  const arr = [];
+  for (let y = 1; y <= Math.max(term, 10); y++) {
+    arr.push(establish + annualRecurring * y);
+  }
+  return arr;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// FORMATTING
+// ═══════════════════════════════════════════════════════════════
+
+let currentCurrencyCode = 'AUD';
+let currentAudConversionRate = 1.0; // AUD → local currency multiplier
+
+function audToLocal(audAmount) {
+  // AUD base → local: divide by AUD-per-local to get local units
+  // CURRENCY_TO_AUD[X] = how many AUD per 1 unit of X
+  return audAmount / (CURRENCY_TO_AUD[currentCurrencyCode] || 1);
+}
+
+function formatCurrency(audAmount, compact=false) {
+  if (audAmount === null || audAmount === undefined) return '—';
+  const local = audToLocal(audAmount);
+  const opts = {
+    style: 'currency',
+    currency: currentCurrencyCode,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  };
+  if (compact && Math.abs(local) >= 1000000) {
+    return new Intl.NumberFormat('en-AU', { style:'currency', currency:currentCurrencyCode, maximumFractionDigits:1 })
+      .format(local/1000000) + 'M';
+  }
+  if (compact && Math.abs(local) >= 1000) {
+    return new Intl.NumberFormat('en-AU', { style:'currency', currency:currentCurrencyCode, maximumFractionDigits:0 })
+      .format(local/1000) + 'k';
+  }
+  try { return new Intl.NumberFormat('en-AU', opts).format(local); }
+  catch(e) { return local.toLocaleString('en-AU', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════════════════════════════
+
+const OPTION_ORDER = ['serverRoom','officeSpace','colo','zellaMax','zellaOutback','zellaPro'];
+
+const CHART_COLORS = {
+  serverRoom:   { line: '#e05c5c', bg: 'rgba(224,92,92,0.08)' },
+  officeSpace:  { line: '#e09a3e', bg: 'rgba(224,154,62,0.08)' },
+  colo:         { line: '#a0b4c8', bg: 'rgba(160,180,200,0.08)' },
+  zellaMax:     { line: 'rgb(36,171,234)',  bg: 'rgba(36,171,234,0.08)' },
+  zellaOutback: { line: 'rgb(162,119,248)', bg: 'rgba(162,119,248,0.08)' },
+  zellaPro:     { line: 'rgb(3,28,65)',     bg: 'rgba(3,28,65,0.06)' },
+};
+
+function renderCards(results, term) {
+  // Find winner (lowest available TCO)
+  const available = OPTION_ORDER.filter(k => results[k].available && results[k].tco !== null);
+  const winnerKey = available.reduce((a,b) => results[a].tco <= results[b].tco ? a : b, available[0]);
+
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
+
+  OPTION_ORDER.forEach(key => {
+    const r = results[key];
+    const isWinner = key === winnerKey && r.available;
+    const div = document.createElement('div');
+    div.className = 'option-card' + (isWinner ? ' winner' : '') + (!r.available ? ' disabled' : '');
+
+    let inner = '';
+    if (isWinner) inner += `<div class="winner-badge">Lowest TCO</div>`;
+    inner += `<div class="option-type ${r.typeClass}">${r.type}</div>`;
+    inner += `<div class="option-name">${r.name}</div>`;
+
+    if (!r.available) {
+      inner += `<div class="option-metrics"><div class="unavailable-overlay">Not available — ${r.note}</div></div>`;
+    } else {
+      inner += `<div class="option-metrics">
+        <div class="metric-row">
+          <span class="metric-label">Establishment</span>
+          <span class="metric-value">${formatCurrency(r.establishment)}</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Annual running cost</span>
+          <span class="metric-value">${formatCurrency(r.annualRecurring)}</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Running over ${term} yrs</span>
+          <span class="metric-value">${formatCurrency(r.runningOverTerm)}</span>
+        </div>
+        <div class="metric-row total">
+          <span class="metric-label">Total TCO</span>
+          <span class="metric-value">${formatCurrency(r.tco)}</span>
+        </div>
+      </div>`;
+    }
+    div.innerHTML = inner;
+    grid.appendChild(div);
+  });
+}
+
+function renderTable(results, term) {
+  const tbl = document.getElementById('summary-table');
+  const available = OPTION_ORDER.filter(k => results[k].available && results[k].tco !== null);
+  const winnerKey = available.length ? available.reduce((a,b) => results[a].tco <= results[b].tco ? a : b, available[0]) : null;
+
+  const headers = ['', ...OPTION_ORDER.map(k => results[k].name)];
+  const rows = [
+    { label:'Establishment', key:'establishment' },
+    { label:'Annual running cost', key:'annualRecurring' },
+    { label:`Running over ${term} yrs`, key:'runningOverTerm' },
+    { label:'Total Cost of Ownership', key:'tco', isTotal:true },
+  ];
+
+  let html = '<thead><tr>';
+  headers.forEach((h, i) => {
+    const align = i === 0 ? 'left' : 'right';
+    html += `<th style="text-align:${align}">${h}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(row => {
+    html += `<tr class="${row.isTotal ? 'row-total' : ''}">`;
+    html += `<td>${row.label}</td>`;
+    OPTION_ORDER.forEach(key => {
+      const r = results[key];
+      if (!r.available || r[row.key] === null) {
+        html += `<td class="na">n/a</td>`;
+      } else {
+        const isBest = row.isTotal && key === winnerKey;
+        html += `<td class="${isBest ? 'best' : ''}">${formatCurrency(r[row.key])}</td>`;
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  tbl.innerHTML = html;
+}
+
+function renderLegend(results) {
+  const legend = document.getElementById('chart-legend');
+  legend.innerHTML = '';
+  OPTION_ORDER.forEach(key => {
+    const r = results[key];
+    if (!r.available) return;
+    const col = CHART_COLORS[key];
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<div class="legend-dot" style="background:${col.line}"></div>${r.name}`;
+    legend.appendChild(item);
+  });
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// CANVAS CHART — clean, boardroom-grade line chart
+// ═══════════════════════════════════════════════════════════════
+
+let chartData = null; // store for tooltip
+
+function renderChart(results, term) {
+  const canvas = document.getElementById('tcoChart');
+  const container = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  const PAD = { top: 20, right: 32, bottom: 48, left: 80 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top  - PAD.bottom;
+
+  // Collect datasets
+  const datasets = OPTION_ORDER
+    .filter(key => results[key].available)
+    .map(key => ({
+      key,
+      label: results[key].name,
+      color: CHART_COLORS[key].line,
+      values: results[key].yearly.slice(0, term).map(v => audToLocal(v)),
+    }));
+
+  if (!datasets.length) return;
+
+  const maxVal = Math.max(...datasets.flatMap(d => d.values));
+  const minVal = 0;
+  const years = Array.from({ length: term }, (_, i) => i + 1);
+
+  // Nice Y axis
+  const yTicks = niceAxis(minVal, maxVal, 5);
+  const yMax = yTicks[yTicks.length - 1];
+  const yMin = yTicks[0];
+
+  function xPos(i) { return PAD.left + (i / (years.length - 1)) * chartW; }
+  function yPos(v) { return PAD.top + chartH - ((v - yMin) / (yMax - yMin)) * chartH; }
+
+  // Gridlines
+  ctx.save();
+  yTicks.forEach(t => {
+    const y = yPos(t);
+    ctx.beginPath();
+    ctx.moveTo(PAD.left, y);
+    ctx.lineTo(PAD.left + chartW, y);
+    ctx.strokeStyle = 'rgba(3,28,65,0.055)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Y label
+    ctx.fillStyle = '#8399b0';
+    ctx.font = `300 11px 'DM Mono', monospace`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(formatCurrency(t * (CURRENCY_TO_AUD[currentCurrencyCode]||1), true), PAD.left - 10, y);
+  });
+  ctx.restore();
+
+  // X axis labels
+  ctx.save();
+  years.forEach((yr, i) => {
+    const x = xPos(i);
+    ctx.fillStyle = '#8399b0';
+    ctx.font = `300 11px 'DM Mono', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`Yr ${yr}`, x, PAD.top + chartH + 12);
+  });
+  ctx.restore();
+
+  // Lines & area fills
+  datasets.forEach(ds => {
+    ctx.save();
+
+    // Area fill
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(ds.values[0]));
+    for (let i = 1; i < ds.values.length; i++) {
+      const x0 = xPos(i-1), y0 = yPos(ds.values[i-1]);
+      const x1 = xPos(i), y1 = yPos(ds.values[i]);
+      const cpx = (x0 + x1) / 2;
+      ctx.bezierCurveTo(cpx, y0, cpx, y1, x1, y1);
+    }
+    ctx.lineTo(xPos(ds.values.length-1), yPos(yMin));
+    ctx.lineTo(xPos(0), yPos(yMin));
+    ctx.closePath();
+    ctx.fillStyle = CHART_COLORS[ds.key].bg;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), yPos(ds.values[0]));
+    for (let i = 1; i < ds.values.length; i++) {
+      const x0 = xPos(i-1), y0 = yPos(ds.values[i-1]);
+      const x1 = xPos(i), y1 = yPos(ds.values[i]);
+      const cpx = (x0 + x1) / 2;
+      ctx.bezierCurveTo(cpx, y0, cpx, y1, x1, y1);
+    }
+    ctx.strokeStyle = ds.color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // Dots at data points
+    ds.values.forEach((v, i) => {
+      ctx.beginPath();
+      ctx.arc(xPos(i), yPos(v), 3.5, 0, Math.PI*2);
+      ctx.fillStyle = ds.color;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  });
+
+  // Store for tooltip
+  chartData = { datasets, years, xPos, yPos, PAD, W, H, term };
+}
+
+function niceAxis(min, max, targetTicks) {
+  const range = max - min;
+  const rawStep = range / targetTicks;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const step = Math.ceil(rawStep / mag) * mag;
+  const start = Math.floor(min / step) * step;
+  const ticks = [];
+  for (let t = start; t <= max + step * 0.5; t += step) ticks.push(t);
+  return ticks;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// CHART TOOLTIP
+// ═══════════════════════════════════════════════════════════════
+
+const tooltip = document.getElementById('chartTooltip');
+
+document.getElementById('tcoChart').addEventListener('mousemove', (e) => {
+  if (!chartData) return;
+  const rect = e.target.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+
+  const { datasets, years, xPos, PAD } = chartData;
+  // Find nearest year
+  let nearestIdx = 0, minDist = Infinity;
+  years.forEach((yr, i) => {
+    const d = Math.abs(mx - xPos(i));
+    if (d < minDist) { minDist = d; nearestIdx = i; }
+  });
+  if (minDist > 40) { tooltip.style.opacity = '0'; return; }
+
+  const yr = years[nearestIdx];
+  const available = OPTION_ORDER.filter(k => results && results[k].available);
+  const winnerKey = available.length ? available.reduce((a,b) => {
+    const va = chartData.datasets.find(d=>d.key===a)?.values[nearestIdx] || Infinity;
+    const vb = chartData.datasets.find(d=>d.key===b)?.values[nearestIdx] || Infinity;
+    return va <= vb ? a : b;
+  }, available[0]) : null;
+
+  let html = `<div class="tt-year">Year ${yr} cumulative TCO</div>`;
+  chartData.datasets.forEach(ds => {
+    const val = ds.values[nearestIdx];
+    const isWinner = ds.key === winnerKey;
+    html += `<div class="tt-row ${isWinner?'highlight':''}">
+      <span class="tt-label"><span class="tt-dot" style="background:${CHART_COLORS[ds.key].line}"></span>${ds.label}</span>
+      <span class="tt-val">${formatCurrency(val * (CURRENCY_TO_AUD[currentCurrencyCode]||1))}</span>
+    </div>`;
+  });
+
+  tooltip.innerHTML = html;
+  tooltip.style.opacity = '1';
+
+  // Position
+  const tx = e.clientX + 16;
+  const ty = e.clientY - tooltip.offsetHeight / 2;
+  tooltip.style.left = Math.min(tx, window.innerWidth - 220) + 'px';
+  tooltip.style.top  = Math.max(8, ty) + 'px';
+});
+
+document.getElementById('tcoChart').addEventListener('mouseleave', () => {
+  tooltip.style.opacity = '0';
+});
+
+
+// ═══════════════════════════════════════════════════════════════
+// STATE & INPUTS
+// ═══════════════════════════════════════════════════════════════
+
+let state = {
+  term: 5,
+  ruSize: 25,
+  numRacks: 1,
+  powerPerRack: 4,
+  regionCode: 'AU',
+  audPerKwh: 0.370692,
+};
+let results = null;
+
+function getInputs() {
+  return { ...state };
+}
+
+function recalculate() {
+  const inputs = getInputs();
+  results = calculate(inputs);
+  const term = inputs.term;
+
+  document.getElementById('term-badge').textContent = `${term}-year TCO`;
+  renderCards(results, term);
+  renderTable(results, term);
+  renderLegend(results);
+  renderChart(results, term);
+}
+
+// Slider utilities
+function updateSlider(slider, value, min, max) {
+  const pct = ((value - min) / (max - min)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+}
+
+// Bind term slider
+const slTerm = document.getElementById('sl-term');
+slTerm.addEventListener('input', () => {
+  state.term = parseInt(slTerm.value);
+  document.getElementById('val-term').textContent = state.term + ' yrs';
+  updateSlider(slTerm, state.term, 3, 10);
+  recalculate();
+});
+
+// Bind racks slider
+const slRacks = document.getElementById('sl-racks');
+slRacks.addEventListener('input', () => {
+  state.numRacks = parseInt(slRacks.value);
+  document.getElementById('val-racks').textContent = state.numRacks;
+  updateSlider(slRacks, state.numRacks, 1, 6);
+  document.getElementById('rack-note').style.display = state.numRacks < 3 ? 'block' : 'none';
+  recalculate();
+});
+
+// Bind power slider
+const slPower = document.getElementById('sl-power');
+slPower.addEventListener('input', () => {
+  state.powerPerRack = parseFloat(slPower.value);
+  document.getElementById('val-power').textContent = state.powerPerRack + ' kW';
+  updateSlider(slPower, state.powerPerRack, 2, 6);
+  recalculate();
+});
+
+// Bind RU segmented
+document.getElementById('seg-ru').addEventListener('click', e => {
+  const btn = e.target.closest('.seg-btn');
+  if (!btn) return;
+  document.querySelectorAll('#seg-ru .seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.ruSize = parseInt(btn.dataset.val);
+  recalculate();
+});
+
+// Populate region dropdown
+const selRegion = document.getElementById('sel-region');
+POWER_DATA.forEach(r => {
+  const opt = document.createElement('option');
+  opt.value = r.code;
+  opt.textContent = `${r.country} (${r.currency})`;
+  if (r.code === 'AU') opt.selected = true;
+  selRegion.appendChild(opt);
+});
+
+// Populate currency dropdown
+const selCurrency = document.getElementById('sel-currency');
+const currencies = [...new Set(POWER_DATA.map(r => r.currency))].sort();
+currencies.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c;
+  opt.textContent = c;
+  if (c === 'AUD') opt.selected = true;
+  selCurrency.appendChild(opt);
+});
+
+selRegion.addEventListener('change', () => {
+  const region = POWER_DATA.find(r => r.code === selRegion.value);
+  if (!region) return;
+  state.regionCode = region.code;
+  state.audPerKwh = region.audRate;
+  currentCurrencyCode = region.currency;
+  // Update currency dropdown
+  selCurrency.value = region.currency;
+  document.getElementById('val-powerrate').textContent = region.localRate.toFixed(4) + ' ' + region.currency + '/kWh';
+  recalculate();
+});
+
+selCurrency.addEventListener('change', () => {
+  currentCurrencyCode = selCurrency.value;
+  recalculate();
+});
+
+
+// ═══════════════════════════════════════════════════════════════
+// ACCORDION
+// ═══════════════════════════════════════════════════════════════
+function toggleAccordion(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// RESIZE HANDLER
+// ═══════════════════════════════════════════════════════════════
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => renderChart(results, state.term), 80);
+});
+
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+(function init() {
+  // Set initial slider fills
+  updateSlider(slTerm, state.term, 3, 10);
+  updateSlider(slRacks, state.numRacks, 1, 6);
+  updateSlider(slPower, state.powerPerRack, 2, 6);
+
+  // Set initial power rate display
+  const initRegion = POWER_DATA.find(r => r.code === 'AU');
+  document.getElementById('val-powerrate').textContent = initRegion.localRate.toFixed(4) + ' AUD/kWh';
+
+  recalculate();
+})();
+</script>
+</body>
+</html>
